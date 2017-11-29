@@ -9,11 +9,13 @@
 namespace ThisSubscribe;
 
 class Api {
+
 	// Privates
 	private $templateRoot = null;
 	private $templateExtension = '.php';
 
-	public function __construct() {
+	public function __construct()
+	{
 		$this->templateRoot = PL_ROOT . DS . 'html';
 	}
 
@@ -22,12 +24,15 @@ class Api {
 	 *
 	 * @return string|void
 	 */
-	public function getTemplate( $template ) {
-		if ( $template === 'subs-form' ) {
+	public function getTemplate( $template )
+	{
+		if($template === 'subs-form')
+		{
 
 			$pathToTemplate = $this->templateRoot . DS . $template . $this->templateExtension;
 
-			if ( is_file( $pathToTemplate ) ) {
+			if(is_file( $pathToTemplate ))
+			{
 				ob_start();
 
 				include $pathToTemplate;
