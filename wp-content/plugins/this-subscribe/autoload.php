@@ -6,4 +6,4 @@
  * Time: 12:24
  */
 
-include_once dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'ThisSubscribe.php';
+include_once THEME_ROOT . DS . 'classes' . DS . 'ThisSubscribe.php';

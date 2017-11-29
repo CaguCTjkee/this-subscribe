@@ -11,10 +11,17 @@
  * License: none
  */
 
-include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'autoload.php';
+if ( defined( 'THEME_ROOT' ) === false ) {
+	define( 'THEME_ROOT', dirname( __FILE__ ) );
+}
+if ( defined( 'DS' ) === false ) {
+	define( 'DS', DIRECTORY_SEPARATOR );
+}
+
+include_once THEME_ROOT . DS . 'autoload.php';
 
 // Register short code
-add_shortcode( 'thisSubscribe', array('ThisSubscribe', 'shortCode') );
+add_shortcode( 'thisSubscribe', array( 'ThisSubscribe\Init', 'shortCode' ) );
 //
 
 // preferences
