@@ -12,7 +12,7 @@
  */
 
 if ( defined( 'THEME_ROOT' ) === false ) {
-	define( 'THEME_ROOT', dirname( __FILE__ ) );
+	define( 'THEME_ROOT', realpath(dirname( __FILE__ )) );
 }
 if ( defined( 'DS' ) === false ) {
 	define( 'DS', DIRECTORY_SEPARATOR );
@@ -22,6 +22,5 @@ include_once THEME_ROOT . DS . 'autoload.php';
 
 // Register short code
 add_shortcode( 'thisSubscribe', array( 'ThisSubscribe\Init', 'shortCode' ) );
-//
 
 // preferences
