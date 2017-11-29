@@ -1,6 +1,6 @@
-<form action="/" method="post">
+<form action="/" method="post" class="this-subscribe">
     <p>
-        <input type="email" name="your-email" value="" size="40" aria-required="true" aria-invalid="false"
+        <input type="email" name="email" value="" size="40" aria-required="true" aria-invalid="false"
                placeholder="Ваш e-mail">
     </p>
     <p>

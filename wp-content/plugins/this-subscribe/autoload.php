@@ -10,7 +10,7 @@ spl_autoload_register( 'thisSubscribe_autoloader' );
 function thisSubscribe_autoloader( $class_name ) {
 
 	if ( false !== strpos( $class_name, 'ThisSubscribe' ) ) {
-		$classes_dir = THEME_ROOT . DS . 'classes' . DS;
+		$classes_dir = PL_ROOT . DS . 'classes' . DS;
 
 		$class_name = explode( '\\', $class_name );
 
