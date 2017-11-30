@@ -47,6 +47,8 @@ class Api {
 	}
 
 	/**
+	 * Return html template
+	 *
 	 * @param       $template
 	 * @param array $vars
 	 *
@@ -79,29 +81,33 @@ class Api {
 	/**
 	 * Add new subscriber
 	 *
-	 * @param $mail
+	 * @param string $mail   Format mail@mail.com
+	 * @param string $output Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
 	 *
 	 * @return array|bool
 	 */
-	public function addNewSubscriber($mail)
+	public function addNewSubscriber($mail, $output = OBJECT)
 	{
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . $this->tsMailsTableName;
 
-		$wpdb->insert($table_name, array(
-			'time' => current_time('mysql'),
-			'mail' => $mail,
-		));
+		// Get subscriber or null
+		$subscriber = $this->getSubscriber(array('mail' => $mail), $output);
 
-		$subscriber = $this->getSubscriber(array('mail' => $mail), ARRAY_A);
-
-		if( $subscriber )
+		if( $subscriber === null )
 		{
-			return $subscriber;
+			// Add new subscriber
+			$wpdb->insert($table_name, array(
+				'time' => current_time('mysql'),
+				'mail' => $mail,
+			));
+
+			// Get subscriber
+			$subscriber = $this->getSubscriber(array('mail' => $mail), $output);
 		}
 
-		return false;
+		return $subscriber;
 	}
 
 	/**
@@ -191,15 +197,14 @@ class Api {
 	/**
 	 * Send mail wen we insert post
 	 *
-	 * @param int      $post_id
 	 * @param \WP_Post $post
 	 *
 	 * @return bool
 	 */
-	public function sendInsertPost($post_id, \WP_Post $post)
+	public function sendInsertPost(\WP_Post $post)
 	{
 		$blogName = get_option('blogname');
-		$post_url = get_permalink($post_id);
+		$post_url = get_permalink($post->ID);
 		$subject  = 'A post has been updated';
 
 		$message = 'A post has been updated on site ' . $blogName . ':' . PHP_EOL . PHP_EOL;

@@ -21,6 +21,8 @@ class Init {
 	}
 
 	/**
+	 * Get instance
+	 *
 	 * @return null|Init
 	 */
 	public static function getInstance()
@@ -71,7 +73,7 @@ class Init {
 	{
 		global $wpdb;
 
-		//		$atts       = shortcode_atts(array(), $attributes);
+		// $atts       = shortcode_atts(array(), $attributes);
 
 		$api        = self::getInstance()->api;
 		$table_name = $wpdb->prefix . $api->getTsMailsTableName();
@@ -105,7 +107,7 @@ class Init {
 	}
 
 	/**
-	 * Add subscriber
+	 * Add subscriber action
 	 */
 	public static function addMail()
 	{
@@ -117,13 +119,7 @@ class Init {
 
 		if( !empty($mail) )
 		{
-			$subscriber = $api->getSubscriber(array('mail' => $mail), ARRAY_A);
-
-			if( $subscriber === null )
-			{
-				// Add new subscriber
-				$subscriber = $api->addNewSubscriber($mail);
-			}
+			$subscriber = $api->addNewSubscriber($mail, ARRAY_A);
 
 			if( $subscriber )
 			{
@@ -140,7 +136,7 @@ class Init {
 	}
 
 	/**
-	 * Action insert post
+	 * Action wp_insert_post
 	 *
 	 * @param int      $post_id
 	 * @param \WP_Post $post
@@ -155,9 +151,12 @@ class Init {
 			return;
 		}
 
-		self::getInstance()->api->sendInsertPost($post_id, $post);
+		self::getInstance()->api->sendInsertPost($post);
 	}
 
+	/**
+	 * Action admin_menu
+	 */
 	public static function pluginMenu()
 	{
 		global $_wp_last_object_menu;
