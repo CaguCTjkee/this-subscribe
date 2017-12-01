@@ -35,11 +35,22 @@ add_action( 'wp_insert_post', array( 'ThisSubscribe\Controller', 'insertPost' ),
 add_action( 'wp_enqueue_scripts', array( 'ThisSubscribe\Controller', 'addScripts' ) );
 
 // Register ajax event for subscribe
-add_action( 'wp_ajax_add_mail', array( 'ThisSubscribe\Controller', 'addMail' ) );
-add_action( 'wp_ajax_nopriv_add_mail', array( 'ThisSubscribe\Controller', 'addMail' ) );
+add_action( 'wp_ajax_add_subscriber_mail', array( 'ThisSubscribe\Controller', 'addMail' ) );
+add_action( 'wp_ajax_nopriv_add_subscriber_mail', array( 'ThisSubscribe\Controller', 'addMail' ) );
+
+// Register ajax event for change mail
+add_action( 'wp_ajax_change_subscriber_mail', array( 'ThisSubscribe\Controller', 'changeMail' ) );
+add_action( 'wp_ajax_nopriv_change_subscriber_mail', array( 'ThisSubscribe\Controller', 'changeMail' ) );
+
+// Register ajax event for abort subscriber
+add_action( 'wp_ajax_abort_subscriber', array( 'ThisSubscribe\Controller', 'abortSubscriber' ) );
+add_action( 'wp_ajax_nopriv_abort_subscriber', array( 'ThisSubscribe\Controller', 'abortSubscriber' ) );
 
 // Add admin menu
 add_action( 'admin_menu', array( 'ThisSubscribe\Controller', 'pluginMenu' ) );
 
 // Add "ts_mails" table to WP when plugin activating
 register_activation_hook( __FILE__, array( 'ThisSubscribe\Controller', 'install' ) );
+
+// Update DB
+add_action( 'plugins_loaded', array( 'ThisSubscribe\Controller', 'update' ) );

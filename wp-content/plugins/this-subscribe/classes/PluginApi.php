@@ -94,6 +94,53 @@ class PluginApi {
 		wp_die();
 	}
 
+	public function changeMail() {
+		$result = array();
+
+		// Remove cookie
+		setcookie( Subscriber::COOKIE, '', time() - 3600, '/' );
+
+		// Return def template
+		$result['html'] = $this->getTemplate( 'subs-form' );
+
+		echo json_encode( $result );
+		wp_die();
+	}
+
+	public function abortSubscriber() {
+		$result = array();
+
+		$subscriberId = ! empty( $_COOKIE[ Subscriber::COOKIE ] ) ? (int) $_COOKIE[ Subscriber::COOKIE ] : null;
+
+		if ( $subscriberId !== null ) {
+
+			// Get subscriber
+			$subscriber = new Subscriber( $subscriberId );
+			if ( $subscriber->id !== null ) {
+
+				// Send mail with instructions
+				$blogName      = get_option( 'blogname' );
+				$subsAbortLink = 'https://caguct.com/abortSubscriber/' . $subscriber->hash;
+				$subject       = 'Abort your subscriber';
+
+				$message = 'If you want abort subscriber on site ' . $blogName . ':' . PHP_EOL . PHP_EOL;
+				$message .= 'just click on this link - <a href="' . $subsAbortLink . '">' . $subsAbortLink . '</a>';
+
+				// Send email to admin
+				wp_mail( $subscriber->mail, $subject, $message );
+
+				// Return abort info
+				$result['html'] = $this->getTemplate( 'abort-info' );
+
+			}
+
+		}
+
+
+		echo json_encode( $result );
+		wp_die();
+	}
+
 	/**
 	 * [thisSubscribe] short code
 	 *

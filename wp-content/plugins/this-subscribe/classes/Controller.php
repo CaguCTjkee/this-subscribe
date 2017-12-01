@@ -48,6 +48,15 @@ class Controller {
 	}
 
 	/**
+	 * Creating Tables with Plugins (https://codex.wordpress.org/Creating_Tables_with_Plugins)
+	 */
+	public static function update() {
+
+		$subscribersApi = new SubscriberApi();
+		$subscribersApi->update();
+	}
+
+	/**
 	 * @param $attributes
 	 *
 	 * @return bool|string
@@ -71,6 +80,22 @@ class Controller {
 	public static function addMail() {
 
 		self::getInstance()->api->addMail();
+	}
+
+	/**
+	 * Change subscriber mail action (or drop cookie)
+	 */
+	public static function changeMail() {
+
+		self::getInstance()->api->changeMail();
+	}
+
+	/**
+	 * Abort subscriber mail action
+	 */
+	public static function abortSubscriber() {
+
+		self::getInstance()->api->abortSubscriber();
 	}
 
 	/**

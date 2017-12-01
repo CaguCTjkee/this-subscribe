@@ -16,11 +16,12 @@ namespace ThisSubscribe;
  */
 class Subscriber extends AbstractModel {
 
-	const TABLE = 'ts_mail';
+	const TABLE = 'ts_mails';
 	const COOKIE = 'this_subscriber_id';
 
 	// fields
 	public $mail;
+	public $hash;
 
 	public function __construct( $id_or_mail = null ) {
 
@@ -51,10 +52,14 @@ class Subscriber extends AbstractModel {
 				// Current time
 				$this->time = current_time( 'mysql' );
 
+				// Hash
+//				$this->hash = \PasswordHash::PasswordHash();
+
 				// Add new subscriber
 				$insert = $wpdb->insert( $wpdb->prefix . self::TABLE, array(
 					'time' => $this->time,
-					'mail' => sanitize_text_field( $this->mail )
+					'mail' => sanitize_text_field( $this->mail ),
+//					'hash' => sanitize_text_field( $this->hash )
 				) );
 
 				if ( $insert !== false ) {
@@ -79,11 +84,13 @@ class Subscriber extends AbstractModel {
 			$this->id   = $object_or_array->id;
 			$this->time = $object_or_array->time;
 			$this->mail = $object_or_array->mail;
+			$this->hash = $object_or_array->hash;
 		}
 		if ( is_array( $object_or_array ) ) {
 			$this->id   = $object_or_array['id'];
 			$this->time = $object_or_array['time'];
 			$this->mail = $object_or_array['mail'];
+			$this->hash = $object_or_array['hash'];
 		}
 	}
 }

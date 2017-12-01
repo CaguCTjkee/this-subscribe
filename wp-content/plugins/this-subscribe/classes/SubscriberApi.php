@@ -16,8 +16,12 @@ namespace ThisSubscribe;
  */
 class SubscriberApi {
 
-	const DB_VERSION = '1.0';
+	const DB_VERSION_OPTION_NAME = 'ts_db_version';
+	const DB_VERSION = '1.1';
 
+	/**
+	 * Creating Tables with Plugins (https://codex.wordpress.org/Creating_Tables_with_Plugins)
+	 */
 	public function install() {
 		global $wpdb;
 
@@ -25,9 +29,10 @@ class SubscriberApi {
 
 		if ( $wpdb->get_var( 'show tables like "' . $table_name . '"' ) != $table_name ) {
 			$sql = 'CREATE TABLE ' . $table_name . ' (
-					  id mediumint(9) NOT NULL AUTO_INCREMENT,
-					  time datetime DEFAULT "0000-00-00 00:00:00" NOT NULL,
-					  mail tinytext NOT NULL,
+					  id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
+					  time DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+					  mail TINYTEXT NOT NULL,
+					  hash VARCHAR(255) NOT NULL,
 					  PRIMARY KEY (id)
 					);';
 
@@ -35,7 +40,33 @@ class SubscriberApi {
 
 			dbDelta( $sql );
 
-			add_option( 'ts_db_version', self::DB_VERSION );
+			add_option( self::DB_VERSION_OPTION_NAME, self::DB_VERSION );
+		}
+	}
+
+	/**
+	 * Update Tables with Plugins (https://codex.wordpress.org/Creating_Tables_with_Plugins)
+	 */
+	public function update() {
+		global $wpdb;
+
+		$sql           = null;
+		$installed_ver = get_option( self::DB_VERSION_OPTION_NAME );
+		$table_name    = $wpdb->prefix . Subscriber::TABLE;
+
+		if ( $installed_ver != self::DB_VERSION ) {
+
+			if ( self::DB_VERSION === '1.1' ) {
+				$sql = 'ALTER TABLE ' . $table_name . ' ADD `hash` VARCHAR(255) NOT NULL AFTER `mail`;';
+			}
+
+			if ( $sql !== null ) {
+
+				$wpdb->query( $sql );
+
+				update_option( self::DB_VERSION_OPTION_NAME, self::DB_VERSION );
+
+			}
 		}
 	}
 
