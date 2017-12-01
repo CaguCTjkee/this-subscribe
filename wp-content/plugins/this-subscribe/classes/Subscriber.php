@@ -72,6 +72,9 @@ class Subscriber extends AbstractModel {
 		}
 	}
 
+	/**
+	 * @return bool
+	 */
 	private function add() {
 		global $wpdb;
 
@@ -93,11 +96,38 @@ class Subscriber extends AbstractModel {
 		if ( $insert !== false ) {
 			$this->id = $wpdb->insert_id;
 		}
+
+		if ( $this->id !== null ) {
+			return true;
+		} else {
+			// todo: Exception
+			return false;
+		}
 	}
 
+	/**
+	 * @return bool
+	 */
 	private function update() {
 		global $wpdb;
 
+		if ( $this->id !== null ) {
+			$update = $wpdb->update( $wpdb->prefix . self::TABLE, array(
+				'time' => $this->time,
+				'mail' => sanitize_text_field( $this->mail ),
+				'hash' => sanitize_text_field( $this->hash )
+			), array( 'id' => $this->id ) );
+
+			if ( $update !== false ) {
+				return true;
+			} else {
+				// todo: Exception
+				return false;
+			}
+
+		} else {
+			return false;
+		}
 	}
 
 	/**
