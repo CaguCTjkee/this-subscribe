@@ -37,43 +37,67 @@ class Subscriber extends AbstractModel {
 		}
 	}
 
+	public function remove() {
+		global $wpdb;
+	}
+
 	/**
 	 * Save subscriber
 	 */
 	public function save() {
-		global $wpdb;
 
-		if ( $this->mail !== null ) {
-			// Get subs
+		$update_flag = false;
+
+		// Anyway we need mail, for update or add
+		if ( $this->mail === null ) {
+			// todo: Exception
+			return false;
+		}
+
+		if ( $this->id === null ) {
+			// Get subscriber
 			$subscriber = new self( $this->mail );
-			// If not found subscriber - add
 			if ( $subscriber->id === null ) {
-
-				// Current time
-				$this->time = current_time( 'mysql' );
-
-				// Hash
-//				$this->hash = \PasswordHash::PasswordHash();
-
-				// Add new subscriber
-				$insert = $wpdb->insert( $wpdb->prefix . self::TABLE, array(
-					'time' => $this->time,
-					'mail' => sanitize_text_field( $this->mail ),
-//					'hash' => sanitize_text_field( $this->hash )
-				) );
-
-				if ( $insert !== false ) {
-					// Add ID
-					$this->id = $wpdb->insert_id;
-				}
-
+				// Add subscriber
+				$this->add();
 			} else {
-				$this->setter( $subscriber );
-				// todo: update?
+				$update_flag = true;
 			}
 		} else {
-			// todo: Exception
+			$update_flag = true;
 		}
+
+		if ( $update_flag ) {
+			$this->update();
+		}
+	}
+
+	private function add() {
+		global $wpdb;
+
+		// Current time
+		$this->time = current_time( 'mysql' );
+
+		// Hash
+		if ( $this->hash === null ) {
+			$this->hash = wp_hash_password( $this->mail . SECURE_AUTH_SALT );
+		}
+
+		// Add new subscriber
+		$insert = $wpdb->insert( $wpdb->prefix . self::TABLE, array(
+			'time' => $this->time,
+			'mail' => sanitize_text_field( $this->mail ),
+			'hash' => sanitize_text_field( $this->hash )
+		) );
+
+		if ( $insert !== false ) {
+			$this->id = $wpdb->insert_id;
+		}
+	}
+
+	private function update() {
+		global $wpdb;
+
 	}
 
 	/**

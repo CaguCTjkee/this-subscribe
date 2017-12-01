@@ -71,10 +71,11 @@ class PluginApi {
 		if ( $mail !== null ) {
 
 			$subscriber = new Subscriber( $mail );
+
 			// If subscriber not found
 			if ( $subscriber->id === null ) {
-
 				// Add new Subscriber
+				$subscriber->hash = wp_hash_password( $mail . SECURE_AUTH_SALT );
 				$subscriber->mail = $mail;
 				$subscriber->save();
 			}
