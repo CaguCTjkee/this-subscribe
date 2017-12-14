@@ -17,6 +17,7 @@ namespace ThisSubscribe;
 class PluginApi {
 
 	const TEMPLATE_EXT = 'php';
+	const UNSUBSCRIBER_PAGE_SLUG = 'this-unsubscribe';
 
 	public $subscribersApi;
 
@@ -47,10 +48,10 @@ class PluginApi {
 		add_submenu_page( 'wpts', __( 'Subscribers', 'this-subscribe' ), __( 'Subscribers', 'this-subscribe' ), 'customize',
 			'wpts', array( 'ThisSubscribe\PluginController', 'subscribersAdmin' ) );
 
-		add_submenu_page( 'wpts', __( 'Templates This subscribe', 'this-subscribe-templates' ),
-			__( 'Templates', 'this-subscribe-templates' ), 'customize', 'wpts-templates', function () {
-				echo 'templates';
-			} );
+//		add_submenu_page( 'wpts', __( 'Templates This subscribe', 'this-subscribe-templates' ),
+//			__( 'Templates', 'this-subscribe-templates' ), 'customize', 'wpts-templates', function () {
+//				echo 'templates';
+//			} );
 
 		add_submenu_page( 'wpts', __( 'Settings', 'this-subscribe-setting' ),
 			__( 'Settings', 'this-subscribe-setting' ), 'manage_options', SettingsPage::MENU_SLUG, array(
@@ -182,6 +183,42 @@ class PluginApi {
 	}
 
 	/**
+	 * [thisUnSubscribe] short code
+	 *
+	 * @param $attributes
+	 *
+	 * @return bool|string
+	 */
+	public function thisUnSubscribeShortCode( $attributes ) {
+		global $wpdb;
+
+		$atts = shortcode_atts( array(), $attributes );
+
+		$subscriberHash = ! empty( $_GET[ Subscriber::HASH ] ) ? $_GET[ Subscriber::HASH ] : null;
+
+		// If user already subscribed
+		if ( $subscriberHash !== null ) {
+
+			// Sanitize and encode
+			$subscriberHash = sanitize_text_field( urldecode( $subscriberHash ) );
+
+			// Get subscribe
+			$subscriber = new Subscriber( $subscriberHash );
+
+			if ( $subscriber->id !== null ) {
+
+				// Unsubscribe
+				if ( $subscriber->api->unSubscribe( $subscriber ) === true ) {
+					return $this->getTemplate( 'unsubscribed', $subscriber );
+				}
+			}
+		}
+
+		// View subscribe template
+		return $this->getTemplate( 'unsubscribed-fail' );
+	}
+
+	/**
 	 * Return html template
 	 *
 	 * @param $template
@@ -216,6 +253,45 @@ class PluginApi {
 	}
 
 	/**
+	 * Get class name without namespace
+	 *
+	 * @param $object
+	 *
+	 * @return mixed|null
+	 */
+	public function getClassNameFromObject( $object ) {
+		if ( is_object( $object ) ) {
+
+			$classNameWithNamespace = get_class( $object );
+			$classNameWithNamespace = explode( "\\", $classNameWithNamespace );
+			$className              = array_pop( $classNameWithNamespace );
+
+			return $className;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Add un subscriver page to wordpress if not exist
+	 */
+	public function addUnSubscriberPage() {
+		$unSubscriberPage = get_page_by_path( self::UNSUBSCRIBER_PAGE_SLUG );
+		if ( $unSubscriberPage === null ) {
+			// add page
+			$page = array(
+				'post_author'  => 1,
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => __( 'Unsubscribe' ),
+				'post_name'    => self::UNSUBSCRIBER_PAGE_SLUG,
+				'post_content' => '[thisUnSubscribe]',
+			);
+			wp_insert_post( $page );
+		}
+	}
+
+	/**
 	 * Send mail wen we insert post
 	 *
 	 * @param \WP_Post $post
@@ -224,20 +300,30 @@ class PluginApi {
 	 */
 	public function sendInsertPost( \WP_Post $post ) {
 
-		return;
-
 		if ( wp_is_post_revision( $post->ID ) ) {
 			return;
 		}
 
-		$blogName = get_option( 'blogname' );
-		$post_url = get_permalink( $post->ID );
-		$subject  = 'A post has been updated';
+		$replace = array(
+			'[blogname]'   => get_option( 'blogname' ),
+			'[post-url]'   => get_permalink( $post->ID ),
+			'[abort-link]' => '',
+		);
 
-		$message = 'A post has been updated on site ' . $blogName . ':' . PHP_EOL . PHP_EOL;
-		$message .= $post->post_title . ": " . $post_url;
+		$unsubscriberLink = get_bloginfo( 'wpurl' ) . '/' . self::UNSUBSCRIBER_PAGE_SLUG . '?' . Subscriber::HASH . '=';
 
-		// Send email to admin
-		wp_mail( $subscribersApi->getSubscribersMails(), $subject, $message );
+		$subscribersApi = new SubscriberApi();
+		$subscribers    = $subscribersApi->getSubscribers();
+		if ( $subscribers !== null ) {
+			foreach ( $subscribers as $subscriber ) {
+				if ( $subscriber->signed > 0 ) {
+					$replace['[abort-link]'] = $unsubscriberLink . urlencode( $subscriber->hash );
+
+					$subject = strtr( SettingsPage::getOption( 'post_subject' ), $replace );
+					$message = strtr( SettingsPage::getOption( 'post_message' ), $replace );
+					wp_mail( $subscriber->mail, $subject, $message );
+				}
+			}
+		}
 	}
 }

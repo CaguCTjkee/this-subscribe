@@ -1,5 +1,5 @@
 <div class="this-subscribe">
     <div class="info">
-        We sent you a mail with instruction, how you can abort subscribe.
+	    <?php echo \ThisSubscribe\SettingsPage::getOption( 'subscribe_abort_message' ); ?>
     </div>
 </div>

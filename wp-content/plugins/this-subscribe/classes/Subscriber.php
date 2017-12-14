@@ -18,6 +18,10 @@ class Subscriber extends AbstractModel {
 
 	const TABLE = 'ts_mails';
 	const COOKIE = 'this_subscriber_id';
+	const HASH = 'hash';
+
+	// Api
+	public $api;
 
 	// fields
 	public $mail;
@@ -27,15 +31,19 @@ class Subscriber extends AbstractModel {
 	/**
 	 * Subscriber constructor.
 	 *
-	 * @param null $id_or_mail
+	 * @param null $id_or_mail_or_hash
 	 */
-	public function __construct( $id_or_mail = null ) {
+	public function __construct( $id_or_mail_or_hash = null ) {
 
-		$api = new SubscriberApi();
+		$this->api = new SubscriberApi();
 
-		if ( $id_or_mail !== null ) {
+		if ( $id_or_mail_or_hash !== null ) {
 
-			$subscriber = $api->getSubscriber( array( 'id' => $id_or_mail, 'mail' => $id_or_mail ), 'OR' );
+			$subscriber = $this->api->getSubscriber( array(
+				'id'   => $id_or_mail_or_hash,
+				'mail' => $id_or_mail_or_hash,
+				'hash' => $id_or_mail_or_hash,
+			), 'OR' );
 
 			if ( $subscriber !== null ) {
 				$this->setter( $subscriber );
@@ -112,9 +120,9 @@ class Subscriber extends AbstractModel {
 
 		// Add new subscriber
 		$insert = $wpdb->insert( $wpdb->prefix . self::TABLE, array(
-			'time' => $this->time,
-			'mail' => sanitize_text_field( $this->mail ),
-			'hash' => sanitize_text_field( $this->hash ),
+			'time'   => $this->time,
+			'mail'   => sanitize_text_field( $this->mail ),
+			'hash'   => sanitize_text_field( $this->hash ),
 			'signed' => sanitize_text_field( $this->signed )
 		) );
 
@@ -139,9 +147,9 @@ class Subscriber extends AbstractModel {
 
 		if ( $this->id !== null ) {
 			$update = $wpdb->update( $wpdb->prefix . self::TABLE, array(
-				'time' => $this->time,
-				'mail' => sanitize_text_field( $this->mail ),
-				'hash' => sanitize_text_field( $this->hash ),
+				'time'   => $this->time,
+				'mail'   => sanitize_text_field( $this->mail ),
+				'hash'   => sanitize_text_field( $this->hash ),
 				'signed' => sanitize_text_field( $this->signed )
 			), array( 'id' => $this->id ) );
 
@@ -154,22 +162,26 @@ class Subscriber extends AbstractModel {
 		return false;
 	}
 
+	public function generateHash() {
+		return  wp_hash_password( wp_rand(0, 999999999) . SECURE_AUTH_SALT );
+	}
+
 	/**
 	 * @param object|array $object_or_array
 	 */
 	private function setter( $object_or_array ) {
 		if ( is_object( $object_or_array ) ) {
-			$this->id   = $object_or_array->id;
-			$this->time = $object_or_array->time;
-			$this->mail = $object_or_array->mail;
-			$this->hash = $object_or_array->hash;
+			$this->id     = $object_or_array->id;
+			$this->time   = $object_or_array->time;
+			$this->mail   = $object_or_array->mail;
+			$this->hash   = $object_or_array->hash;
 			$this->signed = (int) $object_or_array->signed;
 		}
 		if ( is_array( $object_or_array ) ) {
-			$this->id   = $object_or_array['id'];
-			$this->time = $object_or_array['time'];
-			$this->mail = $object_or_array['mail'];
-			$this->hash = $object_or_array['hash'];
+			$this->id     = $object_or_array['id'];
+			$this->time   = $object_or_array['time'];
+			$this->mail   = $object_or_array['mail'];
+			$this->hash   = $object_or_array['hash'];
 			$this->signed = (int) $object_or_array['signed'];
 		}
 	}

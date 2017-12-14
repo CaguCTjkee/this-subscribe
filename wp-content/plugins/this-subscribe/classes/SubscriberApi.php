@@ -101,7 +101,7 @@ class SubscriberApi {
 	 * @param array|string $where
 	 * @param string $glue Optional. Any of AND | OR
 	 *
-	 * @return array|null
+	 * @return array|null - array with Subscriber object
 	 */
 	public function getSubscribers( $where = null, $glue = 'AND' ) {
 		global $wpdb;
@@ -160,40 +160,78 @@ class SubscriberApi {
 	}
 
 
-	public function subscribe( $id ) {
+	/**
+	 * Subscribe user
+	 *
+	 * @param int|object Subscriber $id_or_object
+	 *
+	 * @return bool
+	 */
+	public function subscribe( $id_od_object ) {
 
-		$id = (int) $id;
+		$subscriber = $this->getSubscribeObject( $id_od_object );
 
-		if ( $id > 0 ) {
-			$subscriber = new Subscriber( $id );
-			if ( $subscriber->id !== null ) {
+		if ( $subscriber->id !== null ) {
 
-				$subscriber->signed = 1;
-				if ( $subscriber->save() === true ) {
-					return true;
-				}
+			// new hash
+			$subscriber->hash   = $subscriber->generateHash();
+			$subscriber->signed = 1;
+			if ( $subscriber->save() === true ) {
+				return true;
 			}
 		}
 
 		return false;
 	}
 
-	public function unSubscribe( $id ) {
+	/**
+	 * Un subscribe user
+	 *
+	 * @param int|object Subscriber $id_or_object
+	 *
+	 * @return bool
+	 */
+	public function unSubscribe( $id_od_object ) {
 
-		$id = (int) $id;
+		$subscriber = $this->getSubscribeObject( $id_od_object );
 
-		if ( $id > 0 ) {
-			$subscriber = new Subscriber( $id );
-			if ( $subscriber->id !== null ) {
+		if ( $subscriber->id !== null ) {
 
-				$subscriber->signed = 0;
-				if ( $subscriber->save() === true ) {
-					return true;
-				}
+			$subscriber->signed = 0;
+			if ( $subscriber->save() === true ) {
+				return true;
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * @param int|object Subscriber $id_or_object
+	 *
+	 * @return Subscriber
+	 */
+	public function getSubscribeObject( $id_od_object ) {
+		if ( is_object( $id_od_object ) ) {
+			// Get class name without namespace
+			$pluginApi = new PluginApi();
+			$className = $pluginApi->getClassNameFromObject( $id_od_object );
+
+			if ( $id_od_object->id !== null && $className === 'Subscriber' ) {
+				$subscriber = $id_od_object;
+
+				return $subscriber;
+			}
+		} else {
+			$id_od_object = (int) $id_od_object;
+			if ( $id_od_object > 0 ) {
+				$subscriber = new Subscriber( $id_od_object );
+
+				return $subscriber;
+			}
+		}
+
+		return new Subscriber();
 	}
 
 	/**
