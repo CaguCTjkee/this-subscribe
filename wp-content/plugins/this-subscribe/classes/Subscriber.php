@@ -22,7 +22,13 @@ class Subscriber extends AbstractModel {
 	// fields
 	public $mail;
 	public $hash;
+	public $signed;
 
+	/**
+	 * Subscriber constructor.
+	 *
+	 * @param null $id_or_mail
+	 */
 	public function __construct( $id_or_mail = null ) {
 
 		$api = new SubscriberApi();
@@ -39,10 +45,20 @@ class Subscriber extends AbstractModel {
 
 	public function remove() {
 		global $wpdb;
+
+		if ( $this->id ) {
+			$wpdb->delete( $wpdb->prefix . self::TABLE, array( 'id' => $this->id ) );
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
-	 * Save subscriber
+	 * Insert or update if not exist
+	 *
+	 * @return bool
 	 */
 	public function save() {
 
@@ -50,7 +66,6 @@ class Subscriber extends AbstractModel {
 
 		// Anyway we need mail, for update or add
 		if ( $this->mail === null ) {
-			// todo: Exception
 			return false;
 		}
 
@@ -59,7 +74,7 @@ class Subscriber extends AbstractModel {
 			$subscriber = new self( $this->mail );
 			if ( $subscriber->id === null ) {
 				// Add subscriber
-				$this->add();
+				return $this->add();
 			} else {
 				$update_flag = true;
 			}
@@ -68,11 +83,15 @@ class Subscriber extends AbstractModel {
 		}
 
 		if ( $update_flag ) {
-			$this->update();
+			return $this->update();
 		}
+
+		return false;
 	}
 
 	/**
+	 * Add in subscriber table
+	 *
 	 * @return bool
 	 */
 	private function add() {
@@ -86,11 +105,17 @@ class Subscriber extends AbstractModel {
 			$this->hash = wp_hash_password( $this->mail . SECURE_AUTH_SALT );
 		}
 
+		// Signed
+		if ( $this->signed === null ) {
+			$this->signed = 1;
+		}
+
 		// Add new subscriber
 		$insert = $wpdb->insert( $wpdb->prefix . self::TABLE, array(
 			'time' => $this->time,
 			'mail' => sanitize_text_field( $this->mail ),
-			'hash' => sanitize_text_field( $this->hash )
+			'hash' => sanitize_text_field( $this->hash ),
+			'signed' => sanitize_text_field( $this->signed )
 		) );
 
 		if ( $insert !== false ) {
@@ -99,13 +124,14 @@ class Subscriber extends AbstractModel {
 
 		if ( $this->id !== null ) {
 			return true;
-		} else {
-			// todo: Exception
-			return false;
 		}
+
+		return false;
 	}
 
 	/**
+	 * Update the subscriber table
+	 *
 	 * @return bool
 	 */
 	private function update() {
@@ -115,19 +141,17 @@ class Subscriber extends AbstractModel {
 			$update = $wpdb->update( $wpdb->prefix . self::TABLE, array(
 				'time' => $this->time,
 				'mail' => sanitize_text_field( $this->mail ),
-				'hash' => sanitize_text_field( $this->hash )
+				'hash' => sanitize_text_field( $this->hash ),
+				'signed' => sanitize_text_field( $this->signed )
 			), array( 'id' => $this->id ) );
 
 			if ( $update !== false ) {
 				return true;
-			} else {
-				// todo: Exception
-				return false;
 			}
 
-		} else {
-			return false;
 		}
+
+		return false;
 	}
 
 	/**
@@ -139,12 +163,14 @@ class Subscriber extends AbstractModel {
 			$this->time = $object_or_array->time;
 			$this->mail = $object_or_array->mail;
 			$this->hash = $object_or_array->hash;
+			$this->signed = (int) $object_or_array->signed;
 		}
 		if ( is_array( $object_or_array ) ) {
 			$this->id   = $object_or_array['id'];
 			$this->time = $object_or_array['time'];
 			$this->mail = $object_or_array['mail'];
 			$this->hash = $object_or_array['hash'];
+			$this->signed = (int) $object_or_array['signed'];
 		}
 	}
 }

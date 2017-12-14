@@ -51,7 +51,7 @@ jQuery(function ($) {
         })
 
         // Abort subscriber
-        $(document.body).on('click', '.this-subscribe-change', function (e) {
+        $(document.body).on('click', '.this-subscribe-abort', function (e) {
             e.preventDefault();
 
             subscriberMethods.abort();

@@ -17,7 +17,7 @@ namespace ThisSubscribe;
 class SubscriberApi {
 
 	const DB_VERSION_OPTION_NAME = 'ts_db_version';
-	const DB_VERSION = '1.1';
+	const DB_VERSION = '1.2';
 
 	/**
 	 * Creating Tables with Plugins (https://codex.wordpress.org/Creating_Tables_with_Plugins)
@@ -58,6 +58,8 @@ class SubscriberApi {
 
 			if ( self::DB_VERSION === '1.1' ) {
 				$sql = 'ALTER TABLE ' . $table_name . ' ADD `hash` VARCHAR(255) NOT NULL AFTER `mail`;';
+			} elseif ( self::DB_VERSION === '1.2' ) {
+				$sql = 'ALTER TABLE ' . $table_name . ' ADD `signed` INT(1) NOT NULL AFTER `hash`;';
 			}
 
 			if ( $sql !== null ) {
@@ -77,7 +79,7 @@ class SubscriberApi {
 	 * @param string $glue Optional. Any of AND | OR
 	 * @param string $output Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
 	 *
-	 * @return array|null|object
+	 * @return array|null|object - null if not exist
 	 */
 	public function getSubscriber( $where = null, $glue = 'AND', $output = OBJECT ) {
 		global $wpdb;
@@ -130,9 +132,11 @@ class SubscriberApi {
 	/**
 	 * Get subscribers mails
 	 *
+	 * @param bool $unsigned
+	 *
 	 * @return array|null
 	 */
-	public function getSubscribersMails() {
+	public function getSubscribersMails( $unsigned = false ) {
 
 		$subscribers = $this->getSubscribers();
 
@@ -140,13 +144,56 @@ class SubscriberApi {
 			$result = array();
 
 			foreach ( $subscribers as $subscriber ) {
-				$result[ $subscriber->id ] = $subscriber->mail;
+				if ( $unsigned ) {
+					$result[ $subscriber->id ] = $subscriber->mail;
+				} else {
+					if ( $subscriber->signed > 0 ) {
+						$result[ $subscriber->id ] = $subscriber->mail;
+					}
+				}
 			}
 
 			return $result;
 		}
 
 		return null;
+	}
+
+
+	public function subscribe( $id ) {
+
+		$id = (int) $id;
+
+		if ( $id > 0 ) {
+			$subscriber = new Subscriber( $id );
+			if ( $subscriber->id !== null ) {
+
+				$subscriber->signed = 1;
+				if ( $subscriber->save() === true ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	public function unSubscribe( $id ) {
+
+		$id = (int) $id;
+
+		if ( $id > 0 ) {
+			$subscriber = new Subscriber( $id );
+			if ( $subscriber->id !== null ) {
+
+				$subscriber->signed = 0;
+				if ( $subscriber->save() === true ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**

@@ -45,19 +45,29 @@ class PluginApi {
 			'wpts', null, 'dashicons-email-alt', $_wp_last_object_menu );
 
 		add_submenu_page( 'wpts', __( 'Subscribers', 'this-subscribe' ), __( 'Subscribers', 'this-subscribe' ), 'customize',
-			'wpts', function () {
-				echo 'world';
-			} );
+			'wpts', array( 'ThisSubscribe\PluginController', 'subscribersAdmin' ) );
 
 		add_submenu_page( 'wpts', __( 'Templates This subscribe', 'this-subscribe-templates' ),
 			__( 'Templates', 'this-subscribe-templates' ), 'customize', 'wpts-templates', function () {
 				echo 'templates';
 			} );
 
-		add_submenu_page( 'wpts', __( 'Preference This subscribe', 'this-subscribe-preference' ),
-			__( 'Preference', 'this-subscribe-preference' ), 'customize', 'wpts-preference', function () {
-				echo 'pref';
-			} );
+		add_submenu_page( 'wpts', __( 'Settings', 'this-subscribe-setting' ),
+			__( 'Settings', 'this-subscribe-setting' ), 'manage_options', SettingsPage::MENU_SLUG, array(
+				'ThisSubscribe\SettingsPage',
+				'createAdminPage'
+			) );
+	}
+
+	public function pluginAdminInit() {
+
+		// SettingsPage
+		$settingsPage = new SettingsPage();
+		$settingsPage->pageInit();
+
+		// Subscriber page backend
+		$adminFrontEnd = new AdminFrontEnd();
+		$adminFrontEnd->subscribersPageAction();
 	}
 
 	/**
@@ -152,7 +162,7 @@ class PluginApi {
 	public function shortCode( $attributes ) {
 		global $wpdb;
 
-		// $atts       = shortcode_atts(array(), $attributes);
+		$atts = shortcode_atts( array(), $attributes );
 
 		$subscriberId = ! empty( $_COOKIE[ Subscriber::COOKIE ] ) ? (int) $_COOKIE[ Subscriber::COOKIE ] : null;
 
@@ -174,20 +184,21 @@ class PluginApi {
 	/**
 	 * Return html template
 	 *
-	 * @param              $template
+	 * @param $template
 	 * @param array|object $vars
 	 *
-	 * @return bool|string
+	 * @return null|string
 	 */
 	public function getTemplate( $template, $vars = array() ) {
 		$pathToTemplate = PL_TEMPLATES . DS . $template . '.' . self::TEMPLATE_EXT;
 
 		if ( is_file( $pathToTemplate ) ) {
 
-			// extract vars
+			// extract vars from object
 			if ( is_object( $vars ) ) {
 				$vars = get_object_vars( $vars );
 			}
+
 			if ( $vars ) {
 				extract( $vars );
 			}
@@ -201,7 +212,7 @@ class PluginApi {
 			return $template;
 		}
 
-		return false;
+		return null;
 	}
 
 	/**
@@ -212,6 +223,8 @@ class PluginApi {
 	 * @return void
 	 */
 	public function sendInsertPost( \WP_Post $post ) {
+
+		return;
 
 		if ( wp_is_post_revision( $post->ID ) ) {
 			return;
@@ -225,6 +238,6 @@ class PluginApi {
 		$message .= $post->post_title . ": " . $post_url;
 
 		// Send email to admin
-		wp_mail( $this->getSubscribersMails(), $subject, $message );
+		wp_mail( $subscribersApi->getSubscribersMails(), $subject, $message );
 	}
 }
