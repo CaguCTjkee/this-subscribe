@@ -8,7 +8,10 @@
 
 namespace ThisSubscribe;
 
-
+/**
+ * Class AbstractModel
+ * @package ThisSubscribe
+ */
 abstract class AbstractModel implements \ArrayAccess {
 
 	// fields

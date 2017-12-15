@@ -51,6 +51,11 @@ class Subscriber extends AbstractModel {
 		}
 	}
 
+	/**
+	 * Remove subscriber
+	 *
+	 * @return bool
+	 */
 	public function remove() {
 		global $wpdb;
 
@@ -69,9 +74,6 @@ class Subscriber extends AbstractModel {
 	 * @return bool
 	 */
 	public function save() {
-
-		$update_flag = false;
-
 		// Anyway we need mail, for update or add
 		if ( $this->mail === null ) {
 			return false;
@@ -90,7 +92,7 @@ class Subscriber extends AbstractModel {
 			$update_flag = true;
 		}
 
-		if ( $update_flag ) {
+		if ( $update_flag === true ) {
 			return $this->update();
 		}
 
@@ -115,7 +117,7 @@ class Subscriber extends AbstractModel {
 
 		// Signed
 		if ( $this->signed === null ) {
-			$this->signed = 1;
+			$this->signed = 0;
 		}
 
 		// Add new subscriber
@@ -163,7 +165,7 @@ class Subscriber extends AbstractModel {
 	}
 
 	public function generateHash() {
-		return  wp_hash_password( wp_rand(0, 999999999) . SECURE_AUTH_SALT );
+		return wp_hash_password( wp_rand( 0, 999999999 ) . SECURE_AUTH_SALT );
 	}
 
 	/**

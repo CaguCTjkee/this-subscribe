@@ -7,17 +7,17 @@
  */
 
 spl_autoload_register( 'thisSubscribe_autoloader' );
-function thisSubscribe_autoloader( $class_name ) {
+function thisSubscribe_autoloader( $className ) {
 
-	if ( false !== strpos( $class_name, 'ThisSubscribe' ) ) {
-		$classes_dir = PL_ROOT . DS . 'classes' . DS;
+	if ( false !== strpos( $className, 'ThisSubscribe' ) ) {
+		$classesDir = PL_ROOT . DS . 'classes' . DS;
 
-		$class_name = explode( '\\', $class_name );
+		$className = explode( '\\', $className );
 
-		$class_file = $classes_dir . $class_name[1] . '.php';
+		$fileOfClass = $classesDir . $className[1] . '.php';
 
-		if ( is_file( $class_file ) ) {
-			require_once $class_file;
+		if ( is_file( $fileOfClass ) ) {
+			require_once $fileOfClass;
 		}
 	}
 }

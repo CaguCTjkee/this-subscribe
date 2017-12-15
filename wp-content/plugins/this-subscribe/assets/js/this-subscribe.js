@@ -34,7 +34,7 @@ jQuery(function ($) {
     if ($('.this-subscribe').length > 0 && typeof ThisSubscribeAjax !== "undefined") {
 
         // Send form
-        $('.this-subscribe-form').on('submit', function (e) {
+        $(document.body).on('submit', '.this-subscribe-form', function (e) {
             e.preventDefault();
 
             var mail = $(this).find('[name="email"]').val();
